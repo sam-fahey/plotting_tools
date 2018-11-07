@@ -74,7 +74,8 @@ def plot_zen_v_azi (zen, azi, bins=20,
     if show: plt.show()
     if savefile != None: plt.savefig(savefile)
 
-def plot_polar_view (zen, azi, bins=20, 
+def plot_polar_view (zen, azi, view,
+                    bins=20, 
                     colormap='PuOr_r',
                     show=False,
                     savefile=None,
@@ -84,14 +85,17 @@ def plot_polar_view (zen, azi, bins=20,
                     title='',
                     rlabels=False):
     ''' Plot 2D zenith angle (y-axis) over azimuth (x-axis)
-    :type    zen: 1d array
-    :param   zen: zenith angle values (deg or rad)
+    :type     zen: 1d array
+    :param    zen: zenith angle values (deg or rad)
 
-    :type    azi: 1d array
-    :param   azi: azimuth values (deg or rad)
+    :type     azi: 1d array
+    :param    azi: azimuth values (deg or rad)
 
-    :type   bins: int or list of two ints
-    :param  bins: bins in each dimension; if list, number in azimuth by number in zenith
+    :type    view: string
+    :param   view: 'south', 'north', or 'sky'; which polar view is plotted
+
+    :type    bins: int or list of two ints
+    :param   bins: bins in each dimension; if list, number in azimuth by number in zenith
     '''
     fig, ax = plt.subplots()
 
@@ -102,12 +106,20 @@ def plot_polar_view (zen, azi, bins=20,
     if max(zen) > 4: zen = zen * np.pi / 180. # zen from deg to rad
     if max(azi) > 7: azi = azi * np.pi / 180. # azi from deg to rad
 
-    # convert zenith to latitude in southern hemisphere
-    zen_mod = np.ma.masked_outside(zen, np.pi/2., 135.*np.pi/180)
-    azi_mod = np.ma.compressed(np.ma.masked_array(azi, mask=zen_mod.mask))
-    zen_mod = np.ma.compressed(zen_mod)
-    lat = -2.*(135. - zen_mod * 180./np.pi)
-    lat = np.sin((90 + lat) * np.pi/180.)
+    if view=='south':
+        # convert zenith to latitude in southern hemisphere
+        zen_mod = np.ma.masked_outside(zen, np.pi/2., 135.*np.pi/180)
+        azi_mod = np.ma.compressed(np.ma.masked_array(azi, mask=zen_mod.mask))
+        zen_mod = np.ma.compressed(zen_mod)
+        lat = -2.*(135. - zen_mod * 180./np.pi)
+        lat = np.sin((90 + lat) * np.pi/180.)
+    if view=='north':
+        # convert zenith to latitude in northern hemisphere
+        zen_mod = np.ma.masked_outside(zen, 135.*np.pi/180, np.pi)
+        azi_mod = np.ma.compressed(np.ma.masked_array(azi, mask=zen_mod.mask))
+        zen_mod = np.ma.compressed(zen_mod)
+        lat = 2.*(135. - zen_mod * 180./np.pi)
+        lat = np.sin((90 + lat) * np.pi/180.)
     
     azi_bins = np.linspace(0, 2*np.pi, n_azi_bins+1)
     lat_bins = np.sin( np.linspace(0, np.pi/2, n_zen_bins+1))
@@ -142,4 +154,5 @@ if __name__ == '__main__':
     azi = (RA + azi_0) % 360
     
     #plot_zen_v_azi(zen, azi, show=True, rownorm=True, bins=12)
-    plot_polar_view(zen, azi, show=True, rownorm=True, bins=20)
+    plot_polar_view(zen, azi, show=True, rownorm=True, bins=20, view='south')
+    plot_polar_view(zen, azi, show=True, rownorm=True, bins=10, view='north')
