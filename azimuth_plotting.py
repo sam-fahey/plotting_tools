@@ -72,7 +72,7 @@ def plot_zen_v_azi (zen, azi, bins=20,
         ax.set_xticklabels(['%i$^{\circ}$'%a for a in ax.get_xticks()])
     plt.tight_layout()
     if show: plt.show()
-    if savefile != None: plt.savefig(savefile)
+    if savefile != None: fig.savefig(savefile)
 
 def plot_polar_view (zen, azi, view,
                     bins=20, 
@@ -136,7 +136,7 @@ def plot_polar_view (zen, azi, view,
     # add title options
 
     if show: plt.show()
-    if savefile != None: plt.savefig(savefile)
+    if savefile != None: fig.savefig(savefile)
 
 if __name__ == '__main__':
     ''' Example use with the public release of 1 year of IceCube point-source-search data'''
@@ -161,5 +161,5 @@ if __name__ == '__main__':
     
     plot_zen_v_azi(zen, azi, show=True, rownorm=True, bins=12, savefile='plots/2d_rownorm.png')
     plot_zen_v_azi(zen, azi, show=True, rownorm=False, bins=20, savefile='plots/2d_counts.png')
-    plot_polar_view(zen, azi, show=True, rownorm=True, bins=20, view='south')
-    plot_polar_view(zen, azi, show=True, rownorm=True, bins=10, view='north')
+    plot_polar_view(zen, azi, show=True, rownorm=True, bins=20, view='south', savefile='plots/polar_south_earth.png')
+    plot_polar_view(zen, azi, show=True, rownorm=True, bins=10, view='north', savefile='plots/polar_north_earth.png')
