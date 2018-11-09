@@ -58,7 +58,7 @@ def plot_zen_v_azi (zen, azi, bins=20,
         mesh = ax.pcolormesh(X, Y, H_rownorm.T, cmap=colormap, label='', vmin=vlim[0], vmax=vlim[1])
         cbar = fig.colorbar(mesh, pad=0., label='azimuth PDF w.r.t. mean')
     else:
-        mesh = ax.pcolormesh(X, Y, H.T, cmap=colormap, label='', vmin=vlim[0], vmax=vlim[1])
+        mesh = ax.pcolormesh(X, Y, H.T, cmap=colormap, label='')
         cbar = fig.colorbar(mesh, pad=0., label='counts')
 
     # Set labels
@@ -92,7 +92,7 @@ def plot_polar_view (zen, azi, view,
     :param    azi: azimuth values (deg or rad)
 
     :type    view: string
-    :param   view: 'south', 'north', or 'sky'; which polar view is plotted
+    :param   view: 'south', 'north'; which polar view is plotted
 
     :type    bins: int or list of two ints
     :param   bins: bins in each dimension; if list, number in azimuth by number in zenith
@@ -113,14 +113,15 @@ def plot_polar_view (zen, azi, view,
         zen_mod = np.ma.compressed(zen_mod)
         lat = -2.*(135. - zen_mod * 180./np.pi)
         lat = np.sin((90 + lat) * np.pi/180.)
-    if view=='north':
+    elif view=='north':
         # convert zenith to latitude in northern hemisphere
         zen_mod = np.ma.masked_outside(zen, 135.*np.pi/180, np.pi)
         azi_mod = np.ma.compressed(np.ma.masked_array(azi, mask=zen_mod.mask))
         zen_mod = np.ma.compressed(zen_mod)
         lat = 2.*(135. - zen_mod * 180./np.pi)
         lat = np.sin((90 + lat) * np.pi/180.)
-    
+    # add option for zenith < pi/2; call view=='sky'
+
     azi_bins = np.linspace(0, 2*np.pi, n_azi_bins+1)
     lat_bins = np.sin( np.linspace(0, np.pi/2, n_zen_bins+1))
     H, x, y = np.histogram2d( lat, azi_mod, bins=[lat_bins, azi_bins])
@@ -132,14 +133,18 @@ def plot_polar_view (zen, azi, view,
     cbar = fig.colorbar(mesh, pad=0.1)
     cbar.ax.set_ylabel(ylabel) 
     if not rlabels: ax.set_rticks([])
+    # add title options
 
     if show: plt.show()
     if savefile != None: plt.savefig(savefile)
 
 if __name__ == '__main__':
+    ''' Example use with the public release of 1 year of IceCube point-source-search data'''
+
     # Load down-/up-going data
-    MJD_d, E_d, err_d, RA_d, Dec_d = np.loadtxt('downgoing_events.txt', skiprows=1, unpack=True)
-    MJD_u, E_u, err_u, RA_u, Dec_u = np.loadtxt('upgoing_events.txt', skiprows=1, unpack=True)
+    MJD_d, E_d, err_d, RA_d, Dec_d = np.loadtxt('test_data/downgoing_events.txt', skiprows=1, unpack=True)
+    MJD_u, E_u, err_u, RA_u, Dec_u = np.loadtxt('test_data/upgoing_events.txt', skiprows=1, unpack=True)
+    
     # Combine down-/up-going for all-aky data arrays
     MJD = np.append(MJD_d, MJD_u)
     E = np.append(E_d, E_u)
@@ -148,11 +153,13 @@ if __name__ == '__main__':
     Dec = np.append(Dec_d, Dec_u)
     
     # Work in zenith and azimuth
+    # azimuth here has arbitrary zero
     zen = (Dec + 90) * np.pi/180
     t_of_day = MJD - min(MJD)
     azi_0 = t_of_day * 360. + t_of_day / 365.25 * 360
     azi = (RA + azi_0) % 360
     
-    #plot_zen_v_azi(zen, azi, show=True, rownorm=True, bins=12)
+    plot_zen_v_azi(zen, azi, show=True, rownorm=True, bins=12, savefile='plots/2d_rownorm.png')
+    plot_zen_v_azi(zen, azi, show=True, rownorm=False, bins=20, savefile='plots/2d_counts.png')
     plot_polar_view(zen, azi, show=True, rownorm=True, bins=20, view='south')
     plot_polar_view(zen, azi, show=True, rownorm=True, bins=10, view='north')
